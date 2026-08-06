@@ -1,43 +1,67 @@
-# Manual do MO Effector
+# Manual do MO Effector Native 1.0
 
-## Conceito
+## Começando
 
-O sistema mantém uma ou mais layers-fonte desativadas, cria clones vinculados ao `MO Cloner Controls` e usa expressões para distribuir e animar cada clone. O `MO Effector` é uma Guide Layer: aparece no canvas, mas não no render.
+1. Crie um Solid do tamanho da composição.
+2. Aplique **Effect > MO Tools > MO Effector Native**.
+3. Escolha `Primitive`, `Formation` e `Clone Count`.
+4. Ajuste o conjunto em `Appearance`, `Variation`, `Individual Wiggle`, `Effectors` e `Connections`.
 
-## Formações
+Todas as mudanças são atualizadas imediatamente; não existe botão Sync ou criação de layers por clone.
 
-- **Grid:** linhas, colunas e espaçamento independentes.
-- **Linear:** clones centralizados em uma linha.
-- **Circle:** distribuição radial completa.
+## Source
+
+- **Circle:** círculo com antialiasing.
+- **Square:** quadrado, inclusive com rotação suavizada.
+- **Polygon:** polígono de 3 a 32 lados.
+
+Em `Layer Source`, altere `Source Mode` para usar uma layer da composição. `Multi-Source` permite até quatro fontes com distribuição Cycle ou Random.
+
+## Formation
+
+- **Grid:** linhas, colunas e espaçamentos independentes.
+- **Linear:** clones centralizados em linha.
+- **Circle:** um ou mais anéis concêntricos; `Circle Rings` fica em `Advanced`.
 - **Scatter:** distribuição pseudoaleatória reproduzível.
-- **Globe:** esfera 2.5D com profundidade simulada.
-- **Path:** distribuição sobre uma curva Bézier editável.
+- **Globe 2.5D:** esfera projetada com rotação, velocidade e escala de profundidade.
+- **Bezier Path:** curva visual com alinhamento pela tangente.
+- **Z Circle:** círculo inclinado com profundidade, órbita e velocidade automáticas.
+
+`Module Rotation` gira a formação completa ao redor do Center.
+
+## Appearance e Color Palette
+
+Appearance controla Clone Size, Rotation, Color e Opacity. `Random Size` varia a escala individual de forma determinística. Color Palette oferece até quatro cores com distribuição Cycle ou Random.
+
+## Motion
+
+- **Variation:** jitter determinístico de Position, Scale, Rotation e Opacity; `Animation > Speed` cria movimento contínuo.
+- **Individual Wiggle:** ruído suave por clone, com velocidade e amplitudes separadas.
+- **Step / Stagger:** transformação sequencial com Progress, Falloff e Reverse.
 
 ## Effectors
 
-O raio externo azul delimita a influência. O guia interno verde representa o Inner Radius. Position, Scale, Rotation e Opacity da Guide Layer controlam posição, forma e peso da zona.
+`Effectors` contém Effector 1 e Effector 2. Cada um possui:
 
-Até quatro Effectors podem ser combinados por Maximum, Add, Multiply ou Subtract.
+- Center e Shape;
+- raios interno e externo;
+- seis curvas de Falloff;
+- Strength e Invert;
+- Position, Scale, Rotation e Target Opacity;
+- mistura opcional para Target Color.
 
-## Multi-Source
+Os overlays no viewer mostram a região espacial sem entrar no render.
 
-Selecione de duas a oito layers 2D, abra Quick Source, marque Multi-Source e escolha Sequence ou Random. Para alterar Source Mode, Offset ou Seed posteriormente, ajuste o Controller e clique em Sync.
+## Connections e Line Effector
 
-## Path Cloner
+- **Sequence:** conecta os clones pela ordem e pode fechar o loop.
+- **Nearest:** conecta a quantidade escolhida de vizinhos próximos.
+- **Distance:** conecta todos os pares dentro de Max Distance.
 
-O modo Path cria `MO Cloner Path`. Selecione o Controller e use **Tools > Path** para selecionar a guia. Edite vértices e tangentes normalmente no canvas.
+As linhas são desenhadas atrás dos clones. O `Line Effector` controla espacialmente Target Opacity e Width Change.
 
-## Presets
+Para revelar linhas, use Connections Opacity em 0% e Line Effector Target Opacity em 100%. Para apagá-las, faça o inverso e anime o Center ou Radius do Line Effector.
 
-- **Apply:** aplica o preset e sincroniza os clones.
-- **Save:** captura todos os parâmetros e o layout relativo dos Effectors.
-- **Delete:** remove apenas presets personalizados.
+## Atualização e remoção
 
-Sources e a geometria do Path não são substituídos por presets.
-
-## Manutenção
-
-- **Sync:** atualiza Clone Count, Multi-Source e expressões.
-- **Center:** centraliza formações compatíveis.
-- **Upgrade:** reconstrói o guia principal e atualiza expressões antigas.
-- **Clean:** remove o sistema e restaura todas as fontes.
+Execute novamente a instalação de uma linha para atualizar. Feche o After Effects antes de instalar ou desinstalar.
