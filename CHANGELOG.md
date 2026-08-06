@@ -1,45 +1,18 @@
 # Changelog
 
-## 0.22.1
+## 1.0.0 — Native C++
 
-- Crédito clicável `By Bruno Jorri` no rodapé.
-- Link oficial para o Instagram do autor.
+- Substituição completa da implementação CEP pelo plugin nativo C++.
+- Renderização de todos os clones em uma única layer.
+- Circle, Square e Polygon com antialiasing analítico.
+- Grid, Linear, Circle concêntrico, Scatter, Globe 2.5D, Bezier Path e Z Circle.
+- Source Layer, Multi-Source, Palette, Variation, Wiggle e Step / Stagger.
+- Dois Effectors de clones e Line Effector dedicado.
+- Connections nos modos Sequence, Nearest e Distance.
+- SmartFX, Multi-Frame Rendering e buffers 8/16/32 bpc.
+- Instalador remoto com validação SHA-256.
 
-## 0.22.0
+## 0.22.1 — CEP, aposentado
 
-- Presets internos e biblioteca personalizada.
-- Captura e restauração do layout dos Effectors.
-
-## 0.21.0
-
-- Globe Pro: distribuições, elipsoide, perspectiva, twist e orientação.
-
-## 0.20.0
-
-- Multi-Source com até oito fontes.
-- Sequence, Random, Offset e Seed.
-
-## 0.19.0
-
-- Path Cloner com curva Bézier visual.
-- Interface compacta e recolhível.
-
-## 0.18.0
-
-- Color Effector universal e cores de profundidade.
-
-## 0.17.0
-
-- Até quatro Effectors e modos de combinação.
-
-## 0.16.0
-
-- Advanced Falloff e novos formatos de influência.
-
-## 0.15.0
-
-- Globe 2.5D.
-
-## 0.14.0–0.8.0
-
-- Consolidação do Controller, distribuição dinâmica, Effector visual, limpeza, centralização, Quick Source, Step Stagger e Noise.
+- Última versão da antiga extensão CEP baseada em Shape Layers e expressões.
+- O histórico permanece no Git, mas os arquivos CEP não fazem mais parte da branch principal.

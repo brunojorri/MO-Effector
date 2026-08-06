@@ -1,8 +1,8 @@
-# MO Effector
+# MO Effector Native
 
-Sistema procedural de cloners e effectors para Adobe After Effects, criado por **Bruno Jorri**.
+Plugin procedural de cloners e effectors para Adobe After Effects, criado por **Bruno Jorri**.
 
-O MO Effector transforma qualquer layer 2D em formações procedurais controladas por um painel CEP compacto. A versão atual é a **0.22.1**.
+A versão **1.0** é um efeito nativo C++: todos os clones são renderizados diretamente em uma única layer, sem criar dezenas ou centenas de Shape Layers e expressões. A antiga implementação CEP foi aposentada e removida deste repositório.
 
 ## Instalação em uma linha
 
@@ -12,44 +12,53 @@ Feche o After Effects, abra o **PowerShell** e execute:
 irm https://raw.githubusercontent.com/brunojorri/mo-effector/main/install.ps1 | iex
 ```
 
-Confirme a solicitação de administrador. O instalador:
+Confirme a solicitação de administrador. O instalador baixa o `.aex` oficial, valida o SHA-256 e instala em:
 
-- baixa a versão mais recente;
-- instala a extensão CEP no perfil do usuário;
-- localiza as instalações compatíveis do After Effects;
-- cria backup do `PresetEffects.xml` antes de alterá-lo;
-- registra o pseudo-effect `MO Cloner Controls`;
-- habilita o modo de desenvolvimento CEP.
+`Adobe After Effects 2026\Support Files\Plug-ins\MO Tools`
 
-Depois, reinicie o After Effects e abra **Window > Extensions > MO Effector**.
+Depois, abra o After Effects e procure por **Effect > MO Tools > MO Effector Native**.
 
-## Recursos
+## Principais recursos
 
-- Quick Source: Circle, Square e Polygon.
-- Grid, Linear, Circle, Scatter, Globe e Path Cloner.
-- Globe Pro com Fibonacci, Latitude Rings e Random Sphere.
-- Até quatro Effectors visuais combináveis.
-- Falloff Circle, Box, Linear X e Linear Y.
-- Falloff Linear, Smooth, Ease, Gaussian e Constant.
-- Position, Scale, Rotation, Opacity, Step Stagger e Noise.
-- Color Effector, Random Color e Globe Depth Color.
-- Multi-Source com Sequence, Random, Offset e Seed.
-- Presets internos e biblioteca de presets personalizados.
-- Sync, Center, Upgrade e Clean.
+- Renderização nativa em uma única layer, compatível com 8/16/32 bpc e Multi-Frame Rendering.
+- Primitivas Circle, Square e Polygon com antialiasing analítico.
+- Grid, Linear, Circle concêntrico, Scatter, Globe 2.5D, Bezier Path e Z Circle.
+- Source Layer e Multi-Source com até quatro fontes.
+- Dois Effectors independentes com falloff, transforms e cor.
+- Variation animada, Individual Wiggle, Step / Stagger e Random Size.
+- Color Palette com distribuição cíclica ou aleatória.
+- Connections nos modos Sequence, Nearest e Distance.
+- Line Effector dedicado para animar opacidade e espessura das conexões.
+- Overlays visuais no Composition Viewer.
 
 ## Uso rápido
 
-1. Crie ou selecione uma layer 2D.
-2. Escolha a formação no painel.
-3. Clique em **Create Cloner**.
-4. Selecione `MO Cloner Controls` para editar os parâmetros.
-5. Mova `MO Effector` no canvas para controlar a influência.
+1. Crie um Solid do tamanho da composição.
+2. Aplique **MO Effector Native**.
+3. Escolha a primitiva e a formação no painel Effect Controls.
+4. Ajuste Clone Count, Appearance, Variation e Effectors.
+5. Para clonar uma layer, abra `Layer Source`, escolha `Source Layer` e selecione a fonte.
 
-Consulte o [manual completo](docs/MANUAL.md) e a [arquitetura](docs/ARCHITECTURE.md).
+Consulte o [manual](docs/MANUAL.md), a [arquitetura](docs/ARCHITECTURE.md) e o [código-fonte nativo](src/MO_Effector_Native/README.md).
+
+## Compilar do código-fonte
+
+Requisitos:
+
+- Adobe After Effects SDK 25.6.61 ou compatível;
+- Visual Studio com C++ Desktop Build Tools;
+- variável `AE_SDK_ROOT` apontando para a raiz do SDK.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\src\MO_Effector_Native\scripts\build-core.ps1
+powershell -ExecutionPolicy Bypass -File .\src\MO_Effector_Native\scripts\build-plugin.ps1
+```
+
+O SDK da Adobe não é redistribuído neste repositório.
 
 ## Atualização
 
-Execute novamente a mesma linha de instalação. O instalador substitui a extensão e atualiza o registro preservando um novo backup.
+Execute novamente a linha de instalação. O instalador substitui somente o plugin em `MO Tools` e também remove, quando encontrada, a antiga extensão CEP do MO Effector.
 
 ## Desinstalação
 
@@ -59,9 +68,8 @@ irm https://raw.githubusercontent.com/brunojorri/mo-effector/main/scripts/uninst
 
 ## Compatibilidade
 
-- Windows 10/11.
-- Adobe After Effects com suporte a CEP e `PresetEffects.xml`.
-- Testado durante o desenvolvimento no After Effects 2026.
+- Windows 10/11 x64.
+- Adobe After Effects 2026.
 
 ## Autoria
 

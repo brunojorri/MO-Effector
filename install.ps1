@@ -2,7 +2,7 @@ param([switch]$Elevated)
 
 $ErrorActionPreference = 'Stop'
 $repository = 'brunojorri/mo-effector'
-$rawInstaller = "https://raw.githubusercontent.com/$repository/main/install.ps1"
+$rawRoot = "https://raw.githubusercontent.com/$repository/main"
 
 function Test-Administrator {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -11,71 +11,85 @@ function Test-Administrator {
 }
 
 if (-not (Test-Administrator)) {
-    $bootstrap = Join-Path ([IO.Path]::GetTempPath()) 'install-mo-effector.ps1'
-    Invoke-WebRequest -UseBasicParsing -Uri $rawInstaller -OutFile $bootstrap
+    $bootstrap = Join-Path ([IO.Path]::GetTempPath()) 'install-mo-effector-native.ps1'
+    Invoke-WebRequest -UseBasicParsing -Uri "$rawRoot/install.ps1" -OutFile $bootstrap
     $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$bootstrap`" -Elevated"
-    Start-Process powershell.exe -Verb RunAs -ArgumentList $arguments -Wait
-    return
+    $process = Start-Process powershell.exe -Verb RunAs -ArgumentList $arguments -Wait -PassThru
+    exit $process.ExitCode
 }
 
-$temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ("mo-effector-" + [Guid]::NewGuid().ToString('N'))
-$archive = Join-Path $temporaryRoot 'repository.zip'
-$expanded = Join-Path $temporaryRoot 'expanded'
+if (Get-Process AfterFX -ErrorAction SilentlyContinue) {
+    throw 'Close After Effects before installing MO Effector Native.'
+}
+
+$temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ("mo-effector-native-" + [Guid]::NewGuid().ToString('N'))
+$downloadedPlugin = Join-Path $temporaryRoot 'MO Effector Native.aex'
+$downloadedChecksum = Join-Path $temporaryRoot 'MO Effector Native.aex.sha256'
 
 try {
-    New-Item -ItemType Directory -Force -Path $temporaryRoot, $expanded | Out-Null
-    Write-Host 'Downloading MO Effector...' -ForegroundColor Cyan
-    Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/$repository/archive/refs/heads/main.zip" -OutFile $archive
-    Expand-Archive -LiteralPath $archive -DestinationPath $expanded -Force
+    New-Item -ItemType Directory -Force -Path $temporaryRoot | Out-Null
+    Write-Host 'Downloading MO Effector Native v1.0...' -ForegroundColor Cyan
+    Invoke-WebRequest -UseBasicParsing -Uri "$rawRoot/dist/MO%20Effector%20Native.aex" -OutFile $downloadedPlugin
+    Invoke-WebRequest -UseBasicParsing -Uri "$rawRoot/dist/MO%20Effector%20Native.aex.sha256" -OutFile $downloadedChecksum
 
-    $repositoryRoot = Get-ChildItem -LiteralPath $expanded -Directory | Select-Object -First 1
-    if (-not $repositoryRoot) { throw 'The downloaded repository could not be opened.' }
+    $expectedHash = (Get-Content -Raw -LiteralPath $downloadedChecksum).Trim().Split(' ')[0].ToUpperInvariant()
+    $actualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $downloadedPlugin).Hash.ToUpperInvariant()
+    if ($actualHash -ne $expectedHash) {
+        throw 'The downloaded plugin failed SHA-256 verification.'
+    }
 
-    $extensionSource = Join-Path $repositoryRoot.FullName 'src\MO_Effector_CEP'
-    $pseudoDefinition = Join-Path $extensionSource 'host\MOClonerControls.xml'
-    if (-not (Test-Path -LiteralPath $extensionSource)) { throw 'The CEP extension was not found in the repository.' }
-    if (-not (Test-Path -LiteralPath $pseudoDefinition)) { throw 'The MO Cloner Controls definition was not found.' }
-
-    $extensionTarget = Join-Path $env:APPDATA 'Adobe\CEP\extensions\com.docato.moeffector'
-    if (Test-Path -LiteralPath $extensionTarget) { Remove-Item -LiteralPath $extensionTarget -Recurse -Force }
-    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $extensionTarget) | Out-Null
-    Copy-Item -LiteralPath $extensionSource -Destination $extensionTarget -Recurse -Force
-
-    $fragment = Get-Content -Raw -LiteralPath $pseudoDefinition
     $adobeRoot = Join-Path $env:ProgramFiles 'Adobe'
-    $presetFiles = @()
+    $installations = @()
     if (Test-Path -LiteralPath $adobeRoot) {
-        $presetFiles = @(Get-ChildItem -LiteralPath $adobeRoot -Directory -Filter 'Adobe After Effects *' | ForEach-Object {
-            $candidate = Join-Path $_.FullName 'Support Files\PresetEffects.xml'
-            if (Test-Path -LiteralPath $candidate) { Get-Item -LiteralPath $candidate }
+        $installations = @(Get-ChildItem -LiteralPath $adobeRoot -Directory -Filter 'Adobe After Effects 2026*' | Where-Object {
+            Test-Path -LiteralPath (Join-Path $_.FullName 'Support Files\AfterFX.exe')
         })
     }
-    if (-not $presetFiles.Count) { throw 'No compatible After Effects installation was found.' }
-
-    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-    foreach ($presetFile in $presetFiles) {
-        $backup = "$($presetFile.FullName).before-mo-effector-$stamp.bak"
-        Copy-Item -LiteralPath $presetFile.FullName -Destination $backup -Force
-        $xml = Get-Content -Raw -LiteralPath $presetFile.FullName
-        if ($xml -match 'Pseudo/MO Cloner Controls') {
-            $xml = [regex]::Replace($xml, '(?s)<Effect matchname="Pseudo/MO Cloner Controls".*?</Effect>', [System.Text.RegularExpressions.MatchEvaluator]{ param($match) $fragment }, 1)
-        } else {
-            $xml = $xml.Replace('</Effects>', "`r`n$fragment`r`n</Effects>")
-        }
-        [IO.File]::WriteAllText($presetFile.FullName, $xml, [Text.UTF8Encoding]::new($false))
-        if ((Get-Content -Raw -LiteralPath $presetFile.FullName) -notmatch 'Pseudo/MO Cloner Controls') { throw "Registration failed for $($presetFile.FullName)." }
-        Write-Host "Registered controls in $($presetFile.Directory.Parent.Name)." -ForegroundColor DarkGray
+    if (-not $installations.Count) {
+        throw 'Adobe After Effects 2026 was not found.'
     }
 
-    foreach ($csxsVersion in 9..13) {
-        $registryPath = "HKCU:\Software\Adobe\CSXS.$csxsVersion"
-        New-Item -Path $registryPath -Force | Out-Null
-        New-ItemProperty -Path $registryPath -Name PlayerDebugMode -Value '1' -PropertyType String -Force | Out-Null
+    foreach ($installation in $installations) {
+        $targetDirectory = Join-Path $installation.FullName 'Support Files\Plug-ins\MO Tools'
+        $target = Join-Path $targetDirectory 'MO Effector Native.aex'
+        New-Item -ItemType Directory -Force -Path $targetDirectory | Out-Null
+        Copy-Item -LiteralPath $downloadedPlugin -Destination $target -Force
+        if ((Get-FileHash -Algorithm SHA256 -LiteralPath $target).Hash.ToUpperInvariant() -ne $expectedHash) {
+            throw "Installed plugin failed verification: $target"
+        }
+        Write-Host "Installed in $($installation.Name)." -ForegroundColor DarkGray
+    }
+
+    # Remove the retired CEP extension. Existing projects are not modified.
+    $legacyExtension = Join-Path $env:APPDATA 'Adobe\CEP\extensions\com.docato.moeffector'
+    if (Test-Path -LiteralPath $legacyExtension) {
+        Remove-Item -LiteralPath $legacyExtension -Recurse -Force
+        Write-Host 'Removed the retired CEP extension.' -ForegroundColor DarkGray
+    }
+
+    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    foreach ($installation in $installations) {
+        $preset = Join-Path $installation.FullName 'Support Files\PresetEffects.xml'
+        if (Test-Path -LiteralPath $preset) {
+            $xml = Get-Content -Raw -LiteralPath $preset
+            if ($xml -match 'Pseudo/MO Cloner Controls') {
+                Copy-Item -LiteralPath $preset -Destination "$preset.before-mo-native-$stamp.bak" -Force
+                $xml = [regex]::Replace(
+                    $xml,
+                    '(?s)\s*<Effect matchname="Pseudo/MO Cloner Controls".*?</Effect>\s*',
+                    "`r`n",
+                    1)
+                [IO.File]::WriteAllText($preset, $xml, [Text.UTF8Encoding]::new($false))
+                Write-Host 'Removed the retired pseudo-effect registration (backup created).' -ForegroundColor DarkGray
+            }
+        }
     }
 
     Write-Host ''
-    Write-Host 'MO Effector installed successfully.' -ForegroundColor Green
-    Write-Host 'Restart After Effects, then open Window > Extensions > MO Effector.'
+    Write-Host 'MO Effector Native v1.0 installed successfully.' -ForegroundColor Green
+    Write-Host 'Open After Effects and choose Effect > MO Tools > MO Effector Native.'
 } finally {
-    if (Test-Path -LiteralPath $temporaryRoot) { Remove-Item -LiteralPath $temporaryRoot -Recurse -Force }
+    if (Test-Path -LiteralPath $temporaryRoot) {
+        Remove-Item -LiteralPath $temporaryRoot -Recurse -Force
+    }
 }

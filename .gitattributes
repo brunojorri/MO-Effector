@@ -1,0 +1,9 @@
+* text=auto
+*.md text eol=lf
+*.cpp text eol=lf
+*.hpp text eol=lf
+*.r text eol=lf
+*.rc text eol=crlf
+*.ps1 text eol=crlf
+*.vcxproj text eol=crlf
+*.aex binary
