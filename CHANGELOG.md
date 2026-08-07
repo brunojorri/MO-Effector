@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1 — Time-based animation fix
+
+- Declara corretamente ao After Effects que a saída varia com o tempo.
+- `Animation Speed`, `Individual Wiggle`, Globe Speed e Z Circle Speed agora atualizam continuamente durante o playback, mesmo sem keyframes.
+
 ## 1.0.0 — Native C++
 
 - Substituição completa da implementação CEP pelo plugin nativo C++.
