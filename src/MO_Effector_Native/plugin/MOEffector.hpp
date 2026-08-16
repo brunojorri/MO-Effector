@@ -120,6 +120,9 @@ enum ParamIndex {
     PARAM_PATH_END,
     PARAM_PATH_ALIGN,
     PARAM_PATH_ROTATION_OFFSET,
+    // Kept in the Bezier Path topic visually; its disk ID remains appended below
+    // so existing project values continue to map to the same persisted parameter.
+    PARAM_PATH_POSITION_OFFSET,
     PARAM_PATH_TOPIC_END,
     PARAM_VARIATION_TOPIC,
     PARAM_VARIATION_SEED,
@@ -360,6 +363,7 @@ enum DiskId {
     DISK_LINE_EFFECTOR_WIDTH,
     DISK_LINE_EFFECTOR_TOPIC_END,
     DISK_CONNECTIONS_TOPIC_END,
+    DISK_PATH_POSITION_OFFSET,
 };
 
 extern "C" {
