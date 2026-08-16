@@ -363,6 +363,10 @@ PF_Err paramsSetup(PF_InData* in_data, PF_OutData* outData) {
     PF_ADD_ANGLE("Rotation Offset", 0, DISK_PATH_ROTATION_OFFSET);
 
     AEFX_CLR_STRUCT(def);
+    PF_ADD_FLOAT_SLIDERX("Position Offset", -100, 100, -100, 100, 0, 1,
+                         PF_ValueDisplayFlag_PERCENT, 0, DISK_PATH_POSITION_OFFSET);
+
+    AEFX_CLR_STRUCT(def);
     PF_END_TOPIC(DISK_PATH_TOPIC_END);
 
     AEFX_CLR_STRUCT(def);
@@ -647,6 +651,7 @@ mo::RenderParams makeCoreParams(PF_InData* inData, PF_ParamDef* params[]) {
     coreParams.pathEndX = static_cast<float>(FIX_2_FLOAT(params[PARAM_PATH_END]->u.td.x_value)) * scaleX;
     coreParams.pathEndY = static_cast<float>(FIX_2_FLOAT(params[PARAM_PATH_END]->u.td.y_value)) * scaleY;
     coreParams.pathAlign = params[PARAM_PATH_ALIGN]->u.bd.value != 0;
+    coreParams.pathPositionOffset = static_cast<float>(params[PARAM_PATH_POSITION_OFFSET]->u.fs_d.value) / 100.0F;
     coreParams.pathRotationOffset = static_cast<float>(
         FIX_2_FLOAT(params[PARAM_PATH_ROTATION_OFFSET]->u.ad.value));
     coreParams.cloneSize = static_cast<float>(params[PARAM_CLONE_SIZE]->u.fs_d.value) * scaleUniform;
@@ -931,7 +936,7 @@ PF_Err render(PF_InData* inData, PF_OutData* outData, PF_ParamDef* params[], PF_
     return renderToWorld(inData, outData, output, sources, makeCoreParams(inData, params), useSource, true);
 }
 
-constexpr std::array<int, 120> kRenderParamIndices{
+constexpr std::array<int, 121> kRenderParamIndices{
     PARAM_PRIMITIVE, PARAM_POLYGON_SIDES, PARAM_FORMATION, PARAM_CLONE_COUNT,
     PARAM_ROWS, PARAM_COLUMNS, PARAM_CENTER, PARAM_SPACING_X, PARAM_SPACING_Y,
     PARAM_RADIUS, PARAM_EFFECTOR_ENABLE, PARAM_EFFECTOR_CENTER, PARAM_EFFECTOR_SHAPE,
@@ -943,6 +948,7 @@ constexpr std::array<int, 120> kRenderParamIndices{
     PARAM_GLOBE_SPEED_X, PARAM_GLOBE_SPEED_Y, PARAM_GLOBE_DEPTH_SCALE, PARAM_SOURCE_MODE,
     PARAM_SOURCE_SELECTION, PARAM_SOURCE_RANDOM_SEED, PARAM_PATH_START, PARAM_PATH_CONTROL_1,
     PARAM_PATH_CONTROL_2, PARAM_PATH_END, PARAM_PATH_ALIGN, PARAM_PATH_ROTATION_OFFSET,
+    PARAM_PATH_POSITION_OFFSET,
     PARAM_VARIATION_SEED, PARAM_POSITION_JITTER_X, PARAM_POSITION_JITTER_Y,
     PARAM_SCALE_JITTER, PARAM_ROTATION_JITTER, PARAM_OPACITY_JITTER,
     PARAM_PALETTE_ENABLE, PARAM_PALETTE_SIZE, PARAM_PALETTE_COLOR_2,

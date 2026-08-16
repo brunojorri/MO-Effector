@@ -145,6 +145,7 @@ struct RenderParams {
     float pathEndX{1536.0F};
     float pathEndY{540.0F};
     bool pathAlign{true};
+    float pathPositionOffset{};
     float pathRotationOffset{};
     float cloneSize{80.0F};
     float rotationDegrees{0.0F};

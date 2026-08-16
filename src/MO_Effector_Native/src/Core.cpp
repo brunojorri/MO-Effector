@@ -622,8 +622,13 @@ std::vector<CloneInstance> makeInstances(const RenderParams& params) {
                 break;
             }
             case Formation::Path: {
-                const float normalized = count == 1 ? 0.5F :
+                const float baseNormalized = count == 1 ? 0.5F :
                     static_cast<float>(index) / static_cast<float>(count - 1);
+                float normalized = baseNormalized;
+                if (std::abs(params.pathPositionOffset) > 0.000001F) {
+                    const float shifted = baseNormalized + params.pathPositionOffset;
+                    normalized = shifted - std::floor(shifted);
+                }
                 const float targetLength = normalized * totalPathLength;
                 const auto upper = std::lower_bound(pathLengths.begin(), pathLengths.end(), targetLength);
                 const int upperIndex = std::clamp(static_cast<int>(upper - pathLengths.begin()), 1, pathSamples);
